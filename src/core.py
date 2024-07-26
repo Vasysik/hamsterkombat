@@ -135,7 +135,6 @@ def main():
                                 clicker_data = _sync(token)
                                 if 'clickerUser' in clicker_data:
                                     user_info = clicker_data['clickerUser']
-                                    user_info['lastUpdate'] = int(time.time())
                                     user_info_dict[username] = user_info
                                 countdown_timer(countPerAccount)
                             except requests.RequestException as e:
