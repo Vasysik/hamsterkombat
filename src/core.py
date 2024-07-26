@@ -4,7 +4,7 @@ import time
 import locale
 import requests
 from colorama import *
-from src.__init__ import read_config, update_status
+from src.__init__ import read_config, update_status, _number, countdown_timer, log, log_line
 from src.utils import load_tokens
 from src.auth import get_token, authenticate
 from src.exceptions import upgrade_passive, claim_daily, execute, boost, clicker_config
@@ -22,12 +22,6 @@ client = InfluxDBClient(url=influxdb_config['influxdb_url'], token=influxdb_conf
 write_api = client.write_api(write_options=SYNCHRONOUS)
 bucket = config['influxdb_bucket']
 org = config['influxdb_org']
-
-from src.__init__ import (
-    mrh, pth, hju, kng, htm, bru,  reset, 
-    read_config, _number, countdown_timer, log, 
-    log_line, _banner, _clear
-    )
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 init(autoreset=True)
@@ -74,7 +68,7 @@ def main():
                         if res.status_code == 200:
                             user_data = res.json()
                             username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
-                            log(kng + f"Login as {pth}{username}")    
+                            log(f"Login as {username}")    
                             clicker_config(token)
                             clicker_data = _sync(token)
                             if 'clickerUser' in clicker_data:
@@ -83,9 +77,9 @@ def main():
                                 earn_passive_per_hour = user_info['earnPassivePerHour']
                                 exchange_name = user_info['exchangeId']
                                 update_status(status="get-user-info")
-                                log(hju + f"Balance: {pth}{_number(balance_coins)}")
-                                log(hju + f"Income: {pth}{_number(earn_passive_per_hour)}/h")
-                                log(hju + f"CEO of {pth}{exchange_name} {hju}exchange")
+                                log(f"Balance: {_number(balance_coins)}")
+                                log(f"Income: {_number(earn_passive_per_hour)}/h")
+                                log(f"CEO of {exchange_name} exchange")
                             update_status(status="working")
                             claim_daily(token)
                             while True:
@@ -110,23 +104,23 @@ def main():
                             user_info_dict[username] = user_info
                             balance_coins = user_info['balanceCoins']
                             earn_passive_per_hour = user_info['earnPassivePerHour']
-                            log(hju + f"Balance: {pth}{_number(balance_coins)}")
-                            log(hju + f"Income: {pth}{_number(earn_passive_per_hour)}/h")
+                            log(f"Balance: {_number(balance_coins)}")
+                            log(f"Income: {_number(earn_passive_per_hour)}/h")
                             point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
                             write_api.write(bucket=bucket, org=org, record=point)
                         countdown_timer(countPerAccount)
                     except requests.RequestException as e:
                         update_status(status="error")
-                        log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
+                        log(f"Request exception for token {token[:4]}****: {str(e)}")
                 else:
                     update_status(status="error")
-                    log(mrh + f"Failed to login token {pth}{token[:4]}*********\n", flush=True)
+                    log(f"Failed to login token {token[:4]}*********\n", flush=True)
             with open('current.json', 'w') as f:
                 json.dump(user_info_dict, f)
             countdown_timer(loop)
         except Exception as e:
             update_status(status="error")
-            log(mrh + f"An error occurred in the main loop: {kng}{str(e)}")
+            log(f"An error occurred in the main loop: {str(e)}")
             countdown_timer(10)
 
 if __name__ == '__main__':
