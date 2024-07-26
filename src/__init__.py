@@ -42,12 +42,21 @@ def read_config():
         except json.JSONDecodeError as e:
             return {}
         
+def read_status():
+    with open('status.json', 'r') as f:
+        return json.load(f)
+
+def update_status(status=read_status()['status'], end_string=read_status()['endString']):
+    with open('status.json', 'w') as f:
+        json.dump({"status": status, "endString": end_string}, f)
+
 def log(message, **kwargs):
     global last_log_message
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     flush = kwargs.pop('flush', False)
     end = kwargs.pop('end', '\n')
     if message != last_log_message:
+        update_status(end_string=message)
         print(f"{htm}[{current_time}] {message}", flush=flush, end=end)
         last_log_message = message
 
@@ -61,9 +70,11 @@ def countdown_timer(seconds):
         h = str(h).zfill(2)
         m = str(m).zfill(2)
         s = str(s).zfill(2)
+        update_status(status="waiting", end_string=f"{pth}please wait until {h}:{m}:{s} ")
         print(f"{pth}please wait until {h}:{m}:{s} ", flush=True, end="\r")
         seconds -= 1
         time.sleep(1)
+    update_status(status="waiting", end_string=f"{pth}please wait until {h}:{m}:{s} ")
     print(f"{pth}please wait until {h}:{m}:{s} ", flush=True, end="\r")
 
 def _number(number):

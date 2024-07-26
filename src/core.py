@@ -4,7 +4,7 @@ import time
 import locale
 import requests
 from colorama import *
-from src.__init__ import read_config
+from src.__init__ import read_config, update_status
 from src.utils import load_tokens
 from src.auth import get_token, authenticate
 from src.exceptions import upgrade_passive, claim_daily, execute, boost, clicker_config
@@ -33,48 +33,9 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 init(autoreset=True)
 config = read_config()
 
-def get_status(status):
-    return Fore.GREEN + "ON" + Style.RESET_ALL if status else Fore.RED + "OFF" + Style.RESET_ALL
-
-def show_menu(auto_upgrade, combo_upgrade, daily_cipher_on, claim_key_on, tasks_on):
-    _clear()
-    _banner()
-    menu = f"""
-{kng} Configurations :{reset}
-{kng}  1.{reset} Auto Buy Upgrade           : {get_status(auto_upgrade)}
-{kng}  2.{reset} Auto Complete Combo        : {get_status(combo_upgrade)}
-{kng}  3.{reset} Auto Complete Cipher       : {get_status(daily_cipher_on)}
-{kng}  4.{reset} Auto Complete Mini Game    : {get_status(claim_key_on)}
-{kng}  5.{reset} Auto Complete Tasks        : {get_status(tasks_on)}
-{kng}  6.{reset} {hju}Start Bot {kng}(default){reset}
-{kng}  7.{reset} {mrh}Exit{reset}
-
-{kng} [INFO]{reset} By default will do {hju}taps, boost & streak{reset}
-    """
-    print(menu)
-    choice = input(" Enter your choice (1/2/3/4/5/6): ")
-    log_line()
-    return choice
-
-def show_upgrade_menu():
-    _clear()
-    _banner()
-    config = read_config()
-    max_price = config.get('max_price', 10000000)
-    menu = f"""
-{hju} Active Menu {kng}'Auto Buy Upgrade'{reset}
-{htm} {'~' * 50}{reset}
-{kng} Upgrade Method:{reset}
-{kng} 1. {pth}highest profit {hju}[ enchanced ]{reset}
-{kng} 2. {pth}lowest price{reset}
-{kng} 3. {pth}price less than balance{reset}
-{kng} 4. {pth}back to {bru}main menu{reset}
-
-{kng} [INFO]{reset} you set Max Price to : {pth}{_number(max_price)}{reset}
-    """
-    print(menu)
-    choice = input(" Enter your choice (1/2/3/4): ")
-    return choice
+def read_hamster_config():
+    with open('hamster_config.json', 'r') as f:
+        return json.load(f)
 
 def main():
     auto_upgrade = False
@@ -87,86 +48,84 @@ def main():
     countPerAccount = config.get('DelayPerAccount', 3)
     loop = config.get('loop', 3600)
 
+    update_status(status="starting")
     while True:
         try:
-            choice = show_menu(auto_upgrade, combo_upgrade, daily_cipher_on, claim_key_on, tasks_on)
-            if choice == '1':
+            hamster_config = read_hamster_config()
+            if hamster_config["Auto Buy Upgrade"] == "ON":
                 auto_upgrade = not auto_upgrade
-                if auto_upgrade:
-                    _method = show_upgrade_menu()
-                    if _method not in ['1', '2', '3']:
-                        auto_upgrade = False
-            elif choice == '2':
+            if hamster_config["Auto Complete Combo"] == "ON":
                 combo_upgrade = not combo_upgrade
-            elif choice == '3':
+            if hamster_config["Auto Complete Cipher"] == "ON":
                 daily_cipher_on = not daily_cipher_on
-            elif choice == '4':
+            if hamster_config["Auto Complete Mini Game"] == "ON":
                 claim_key_on = not claim_key_on
-            elif choice == '5':
+            if hamster_config["Auto Complete Tasks"] == "ON":
                 tasks_on = not tasks_on
-            elif choice == '6':
-                while True:
-                    init_data_list = load_tokens('tokens.txt')
-                    user_info_dict = {}
-                    for init_data in init_data_list:
-                        token = get_token(init_data)
-                        if token:
-                            try:
-                                res = authenticate(token)
-                                if res.status_code == 200:
-                                    user_data = res.json()
-                                    username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
-                                    log(kng + f"Login as {pth}{username}")    
-                                    clicker_config(token)
-                                    clicker_data = _sync(token)
-                                    if 'clickerUser' in clicker_data:
-                                        user_info = clicker_data['clickerUser']
-                                        balance_coins = user_info['balanceCoins']
-                                        earn_passive_per_hour = user_info['earnPassivePerHour']
-                                        exchange_name = user_info['exchangeId']
-                                        
-                                        log(hju + f"Balance: {pth}{_number(balance_coins)}")
-                                        log(hju + f"Income: {pth}{_number(earn_passive_per_hour)}/h")
-                                        log(hju + f"CEO of {pth}{exchange_name} {hju}exchange")
-                                    claim_daily(token)
-                                    while True:
-                                        exhausted(token)
-                                        if not boost(token):
-                                            break
-                                    if tasks_on:
-                                        execute(token, cek_task_dict)
-                                    if daily_cipher_on:
-                                        claim_cipher(token)
-                                    if claim_key_on:    
-                                        claim_key(token)
-                                    if combo_upgrade:
-                                        execute_combo(token)
-                                    if auto_upgrade:
-                                        upgrade_passive(token, _method)  
-                                log_line()
-                                clicker_data = _sync(token)
-                                if 'clickerUser' in clicker_data:
-                                    user_info = clicker_data['clickerUser']
-                                    user_info_dict[username] = user_info
-                                    balance_coins = user_info['balanceCoins']
-                                    earn_passive_per_hour = user_info['earnPassivePerHour']
-                                    point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
-                                    write_api.write(bucket=bucket, org=org, record=point)
-                                countdown_timer(countPerAccount)
-                            except requests.RequestException as e:
-                                log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
-                        else:
-                            log(mrh + f"Failed to login token {pth}{token[:4]}*********\n", flush=True)
-                    with open('current.json', 'w') as f:
-                        json.dump(user_info_dict, f)
-                    countdown_timer(loop)
-            elif choice == '7':
-                log(mrh + f"Successfully logged out of the bot\n")
-                break
-            else:
-                log("Invalid choice. Please try again.")
-            time.sleep(1)
+            
+            init_data_list = load_tokens('tokens.txt')
+            user_info_dict = {}
+            for init_data in init_data_list:
+                token = get_token(init_data)
+                if token:
+                    try:
+                        update_status(status="login")
+                        res = authenticate(token)
+                        if res.status_code == 200:
+                            user_data = res.json()
+                            username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
+                            log(kng + f"Login as {pth}{username}")    
+                            clicker_config(token)
+                            clicker_data = _sync(token)
+                            if 'clickerUser' in clicker_data:
+                                user_info = clicker_data['clickerUser']
+                                balance_coins = user_info['balanceCoins']
+                                earn_passive_per_hour = user_info['earnPassivePerHour']
+                                exchange_name = user_info['exchangeId']
+                                update_status(status="get-user-info")
+                                log(hju + f"Balance: {pth}{_number(balance_coins)}")
+                                log(hju + f"Income: {pth}{_number(earn_passive_per_hour)}/h")
+                                log(hju + f"CEO of {pth}{exchange_name} {hju}exchange")
+                            update_status(status="working")
+                            claim_daily(token)
+                            while True:
+                                exhausted(token)
+                                if not boost(token):
+                                    break
+                            if tasks_on:
+                                execute(token, cek_task_dict)
+                            if daily_cipher_on:
+                                claim_cipher(token)
+                            if claim_key_on:    
+                                claim_key(token)
+                            if combo_upgrade:
+                                execute_combo(token)
+                            if auto_upgrade:
+                                upgrade_passive(token, 1)  
+                        update_status(status="ending")
+                        log_line()
+                        clicker_data = _sync(token)
+                        if 'clickerUser' in clicker_data:
+                            user_info = clicker_data['clickerUser']
+                            user_info_dict[username] = user_info
+                            balance_coins = user_info['balanceCoins']
+                            earn_passive_per_hour = user_info['earnPassivePerHour']
+                            log(hju + f"Balance: {pth}{_number(balance_coins)}")
+                            log(hju + f"Income: {pth}{_number(earn_passive_per_hour)}/h")
+                            point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
+                            write_api.write(bucket=bucket, org=org, record=point)
+                        countdown_timer(countPerAccount)
+                    except requests.RequestException as e:
+                        update_status(status="error")
+                        log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
+                else:
+                    update_status(status="error")
+                    log(mrh + f"Failed to login token {pth}{token[:4]}*********\n", flush=True)
+            with open('current.json', 'w') as f:
+                json.dump(user_info_dict, f)
+            countdown_timer(loop)
         except Exception as e:
+            update_status(status="error")
             log(mrh + f"An error occurred in the main loop: {kng}{str(e)}")
             countdown_timer(10)
 
