@@ -133,8 +133,8 @@ def main():
                                 user_data = _sync(token)
                                 if 'clickerUser' in clicker_data:
                                     user_info = user_data['clickerUser']
-                                    user_info['lastUpdate'] = int(time.time())
                                     user_info_dict[username] = user_info
+                                    user_info_dict[username]['lastUpdate'] = int(time.time())
                                 countdown_timer(countPerAccount)
                             except requests.RequestException as e:
                                 log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
