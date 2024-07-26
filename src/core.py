@@ -93,7 +93,7 @@ def main():
             elif choice == '6':
                 while True:
                     init_data_list = load_tokens('tokens.txt')
-                    user_data_list = []
+                    user_info_dict = {}
                     for init_data in init_data_list:
                         token = get_token(init_data)
                         if token:
@@ -101,13 +101,13 @@ def main():
                                 res = authenticate(token)
                                 if res.status_code == 200:
                                     user_data = res.json()
-                                    user_data_list.append(user_data)
                                     username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
                                     log(kng + f"Login as {pth}{username}")    
                                     clicker_config(token)
                                     clicker_data = _sync(token)
                                     if 'clickerUser' in clicker_data:
                                         user_info = clicker_data['clickerUser']
+                                        user_info_dict[username] = user_info
                                         balance_coins = user_info['balanceCoins']
                                         earn_passive_per_hour = user_info['earnPassivePerHour']
                                         exchange_name = user_info['exchangeId']
@@ -137,7 +137,7 @@ def main():
                         else:
                             log(mrh + f"Failed to login token {pth}{token[:4]}*********\n", flush=True)
                     with open('current.json', 'w') as f:
-                        json.dump(user_data_list, f)
+                        json.dump(user_info_dict, f)
                     countdown_timer(loop)
             elif choice == '7':
                 log(mrh + f"Successfully logged out of the bot\n")
