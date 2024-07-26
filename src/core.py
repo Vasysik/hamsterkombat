@@ -107,7 +107,6 @@ def main():
                                     clicker_data = _sync(token)
                                     if 'clickerUser' in clicker_data:
                                         user_info = clicker_data['clickerUser']
-                                        user_info_dict[username] = user_info
                                         balance_coins = user_info['balanceCoins']
                                         earn_passive_per_hour = user_info['earnPassivePerHour']
                                         exchange_name = user_info['exchangeId']
@@ -131,6 +130,11 @@ def main():
                                     if auto_upgrade:
                                         upgrade_passive(token, _method)  
                                 log_line()
+                                user_data = _sync(token)
+                                if 'clickerUser' in clicker_data:
+                                    user_info = user_data['clickerUser']
+                                    user_info['lastUpdate'] = int(time.time())
+                                    user_info_dict[username] = user_info
                                 countdown_timer(countPerAccount)
                             except requests.RequestException as e:
                                 log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
