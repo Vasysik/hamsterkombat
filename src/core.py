@@ -1,4 +1,5 @@
 import sys
+import json
 import time
 import locale
 import requests
@@ -92,7 +93,7 @@ def main():
             elif choice == '6':
                 while True:
                     init_data_list = load_tokens('tokens.txt')
-                    
+                    user_data_list = []
                     for init_data in init_data_list:
                         token = get_token(init_data)
                         if token:
@@ -100,6 +101,7 @@ def main():
                                 res = authenticate(token)
                                 if res.status_code == 200:
                                     user_data = res.json()
+                                    user_data_list.append(user_data)
                                     username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
                                     log(kng + f"Login as {pth}{username}")    
                                     clicker_config(token)
@@ -134,6 +136,8 @@ def main():
                                 log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
                         else:
                             log(mrh + f"Failed to login token {pth}{token[:4]}*********\n", flush=True)
+                    with open('current.json', 'w') as f:
+                        json.dump(user_data_list, f)
                     countdown_timer(loop)
             elif choice == '7':
                 log(mrh + f"Successfully logged out of the bot\n")
