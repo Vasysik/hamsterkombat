@@ -6,5 +6,8 @@
     "ClaimKeysDelay": true,
     "delayUpgrade": false,
     "max_price": 5000000,
-    "loop": 3800
+    "loop": 3800,
+    "influxdb_config_path": "influxdb_config.json",
+    "influxdb_org": "",
+    "influxdb_bucket": ""
 }

@@ -4,10 +4,24 @@ import time
 import locale
 import requests
 from colorama import *
+from src.__init__ import read_config
 from src.utils import load_tokens
 from src.auth import get_token, authenticate
 from src.exceptions import upgrade_passive, claim_daily, execute, boost, clicker_config
 from src.exceptions import _sync, exhausted, execute_combo, claim_cipher, claim_key
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+def read_json(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
+
+config = read_config()
+influxdb_config = read_json(config['influxdb_config_path'])
+client = InfluxDBClient(url=influxdb_config['influxdb_url'], token=influxdb_config['influxdb_token'])
+write_api = client.write_api(write_options=SYNCHRONOUS)
+bucket = config['influxdb_bucket']
+org = config['influxdb_org']
 
 from src.__init__ import (
     mrh, pth, hju, kng, htm, bru,  reset, 
@@ -94,8 +108,6 @@ def main():
                 while True:
                     init_data_list = load_tokens('tokens.txt')
                     user_info_dict = {}
-                    with open('current.json', 'w') as f:
-                        json.dump(user_info_dict, f)
                     for init_data in init_data_list:
                         token = get_token(init_data)
                         if token:
@@ -136,6 +148,10 @@ def main():
                                 if 'clickerUser' in clicker_data:
                                     user_info = clicker_data['clickerUser']
                                     user_info_dict[username] = user_info
+                                    balance_coins = user_info['balanceCoins']
+                                    earn_passive_per_hour = user_info['earnPassivePerHour']
+                                    point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
+                                    write_api.write(bucket=bucket, org=org, record=point)
                                 countdown_timer(countPerAccount)
                             except requests.RequestException as e:
                                 log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
