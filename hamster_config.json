@@ -1,7 +1,7 @@
 {
-    "Auto Buy Upgrade": "ON",
-    "Auto Complete Combo": "ON",
-    "Auto Complete Cipher": "ON",
-    "Auto Complete Mini Game": "ON",
-    "Auto Complete Tasks": "ON"
+    "Auto_Buy_Upgrade": "ON",
+    "Auto_Complete_Combo": "ON",
+    "Auto_Complete_Cipher": "ON",
+    "Auto_Complete_Mini_Game": "ON",
+    "Auto_Complete_Tasks": "ON"
 }
