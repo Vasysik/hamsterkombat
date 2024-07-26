@@ -94,6 +94,8 @@ def main():
                 while True:
                     init_data_list = load_tokens('tokens.txt')
                     user_info_dict = {}
+                    with open('current.json', 'w') as f:
+                        json.dump(user_info_dict, f)
                     for init_data in init_data_list:
                         token = get_token(init_data)
                         if token:
@@ -130,11 +132,11 @@ def main():
                                     if auto_upgrade:
                                         upgrade_passive(token, _method)  
                                 log_line()
-                                user_data = _sync(token)
+                                clicker_data = _sync(token)
                                 if 'clickerUser' in clicker_data:
-                                    user_info = user_data['clickerUser']
+                                    user_info = clicker_data['clickerUser']
+                                    user_info['lastUpdate'] = int(time.time())
                                     user_info_dict[username] = user_info
-                                    user_info_dict[username]['lastUpdate'] = int(time.time())
                                 countdown_timer(countPerAccount)
                             except requests.RequestException as e:
                                 log(mrh + f"Request exception for token {pth}{token[:4]}****: {str(e)}")
