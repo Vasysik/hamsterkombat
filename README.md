@@ -94,7 +94,7 @@ docker build -t my-hamster-app .
 
 Start:
 ```bash
-docker attach hamster-container
+docker run -it -d --name hamster-container my-hamster-app
 ```
 
 
