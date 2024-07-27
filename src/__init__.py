@@ -63,7 +63,7 @@ def log(message, **kwargs):
 def log_line():
     print(pth + "~" * 60)
 
-def countdown_timer(seconds):
+def countdown_timer(seconds, looper = False):
     while seconds:
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
@@ -74,7 +74,7 @@ def countdown_timer(seconds):
         print(f"{pth}please wait until {h}:{m}:{s} ", flush=True, end="\r")
         seconds -= 1
         time.sleep(1)
-    update_status(status="waiting", end_string=f"please wait until {h}:{m}:{s} ")
+    if looper: update_status(status="waiting", end_string=f"please wait until {h}:{m}:{s} ")
     print(f"{pth}please wait until {h}:{m}:{s} ", flush=True, end="\r")
 
 def _number(number):

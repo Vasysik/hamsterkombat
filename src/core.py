@@ -117,7 +117,7 @@ def main():
                     log(f"Failed to login token {token[:4]}*********\n", flush=True)
             with open('current.json', 'w') as f:
                 json.dump(user_info_dict, f)
-            countdown_timer(loop)
+            countdown_timer(loop, looper=True)
         except Exception as e:
             update_status(status="error")
             log(f"An error occurred in the main loop: {str(e)}")
