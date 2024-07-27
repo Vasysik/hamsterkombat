@@ -47,15 +47,15 @@ def main():
         try:
             hamster_config = read_hamster_config()
             if hamster_config["Auto_Buy_Upgrade"] == "ON":
-                auto_upgrade = not auto_upgrade
+                auto_upgrade = True
             if hamster_config["Auto_Complete_Combo"] == "ON":
-                combo_upgrade = not combo_upgrade
+                combo_upgrade = True
             if hamster_config["Auto_Complete_Cipher"] == "ON":
-                daily_cipher_on = not daily_cipher_on
+                daily_cipher_on = True
             if hamster_config["Auto_Complete_Mini_Game"] == "ON":
-                claim_key_on = not claim_key_on
+                claim_key_on = True
             if hamster_config["Auto_Complete_Tasks"] == "ON":
-                tasks_on = not tasks_on
+                tasks_on = True
             
             init_data_list = load_tokens('tokens.txt')
             user_info_dict = {}
