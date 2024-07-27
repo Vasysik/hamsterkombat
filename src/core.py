@@ -17,11 +17,13 @@ def read_json(file_path):
         return json.load(f)
 
 config = read_config()
-influxdb_config = read_json(config['influxdb_config_path'])
-client = InfluxDBClient(url=influxdb_config['influxdb_url'], token=influxdb_config['influxdb_token'])
-write_api = client.write_api(write_options=SYNCHRONOUS)
-bucket = config['influxdb_bucket']
-org = config['influxdb_org']
+
+if config['use_influx']:
+    influxdb_config = read_json(config['influxdb_config_path'])
+    client = InfluxDBClient(url=influxdb_config['influxdb_url'], token=influxdb_config['influxdb_token'])
+    write_api = client.write_api(write_options=SYNCHRONOUS)
+    bucket = config['influxdb_bucket']
+    org = config['influxdb_org']
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 init(autoreset=True)
@@ -106,8 +108,10 @@ def main():
                             earn_passive_per_hour = user_info['earnPassivePerHour']
                             log(f"Balance: {_number(balance_coins)}")
                             log(f"Income: {_number(earn_passive_per_hour)}/h")
-                            point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
-                            write_api.write(bucket=bucket, org=org, record=point)
+
+                            if config['use_influx']:
+                                point = Point("measurement").tag("username", username).field("balanceCoins", balance_coins).field("earnPassivePerHour", earn_passive_per_hour)
+                                write_api.write(bucket=bucket, org=org, record=point)
                         countdown_timer(countPerAccount)
                     except requests.RequestException as e:
                         update_status(status="error")
@@ -115,8 +119,9 @@ def main():
                 else:
                     update_status(status="error")
                     log(f"Failed to login token {token[:4]}*********\n", flush=True)
-            with open('current.json', 'w') as f:
-                json.dump(user_info_dict, f)
+            if config['use_current']: 
+                with open('current.json', 'w') as f:
+                    json.dump(user_info_dict, f)
             countdown_timer(loop, looper=True)
         except Exception as e:
             update_status(status="error")

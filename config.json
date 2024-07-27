@@ -7,6 +7,8 @@
     "delayUpgrade": false,
     "max_price": 5000000,
     "loop": 3800,
+    "use_current": true,
+    "use_influx": true,
     "influxdb_config_path": "influxdb_config.json",
     "influxdb_org": "",
     "influxdb_bucket": ""
