@@ -97,7 +97,7 @@ def main():
                             if combo_upgrade:
                                 execute_combo(token)
                             if auto_upgrade:
-                                upgrade_passive(token, '1')  
+                                upgrade_passive(token, hamster_config["Auto_Buy_Upgrade_Mode"])  
                         update_status(status="ending")
                         log_line()
                         clicker_data = _sync(token)

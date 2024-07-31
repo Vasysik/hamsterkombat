@@ -1,5 +1,6 @@
 {
     "Auto_Buy_Upgrade": "ON",
+    "Auto_Buy_Upgrade_Mode": "1",
     "Auto_Complete_Combo": "ON",
     "Auto_Complete_Cipher": "ON",
     "Auto_Complete_Mini_Game": "ON",
