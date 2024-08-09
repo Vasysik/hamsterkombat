@@ -1,18 +1,52 @@
 import json
-from colorama import Fore, Style, init
-import requests
-from fake_useragent import UserAgent
-from src.utils import get_headers
 import time
-from src.__init__ import read_config
+import atexit
+import requests
+from colorama import *
+from src.utils import get_headers
+from fake_useragent import UserAgent
+from datetime import datetime, timedelta
+from src.__init__ import read_config, log
 from requests.exceptions import ConnectionError, Timeout
 
 init(autoreset=True)
 ua = UserAgent()
 config = read_config()
-timeouts = config.get('loop',3800)
 
-def get_token(init_data_raw, retries=5, backoff_factor=0.5, timeout=timeouts):
+def save_user_agents(filename='user_agents.json'):
+    with open(filename, 'w') as f:
+        json.dump(user_agents, f, indent=4)
+
+def load_user_agents(filename='user_agents.json'):
+    try:
+        with open(filename, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+last_update_time = datetime.now()
+timeouts = config.get('LOOP_COUNTDOWN', 3800)
+user_agents = load_user_agents()
+
+def get_user_agent(account):
+    global last_update_time
+    change_interval = 30
+    current_time = datetime.now()
+    
+    if (current_time - last_update_time) > timedelta(minutes=change_interval):
+        last_update_time = current_time
+        log(f"User agents checked at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if account not in user_agents:
+        new_user_agent = ua.random
+        while 'Mobile' not in new_user_agent:
+            new_user_agent = ua.random
+        user_agents[account] = new_user_agent
+        save_user_agents()
+
+    return user_agents[account]
+
+def get_token(init_data_raw, account, retries=5, backoff_factor=0.5, timeout=timeouts):
     url = 'https://api.hamsterkombatgame.io/auth/auth-by-telegram-webapp'
     headers = {
         'Accept-Language': 'en-US,en;q=0.9',
@@ -22,7 +56,7 @@ def get_token(init_data_raw, retries=5, backoff_factor=0.5, timeout=timeouts):
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-site',
-        'User-Agent': ua.random,
+        'User-Agent': get_user_agent(account),
         'accept': 'application/json',
         'content-type': 'application/json'
     }
@@ -33,33 +67,38 @@ def get_token(init_data_raw, retries=5, backoff_factor=0.5, timeout=timeouts):
             res = requests.post(url, headers=headers, data=data, timeout=timeout)
             res.raise_for_status()
             return res.json()['authToken']
-        except (ConnectionError, Timeout) as e:
-            print(Fore.RED + Style.BRIGHT + f"Connection error on attempt {attempt + 1}: {e}", flush=True)
+        except (requests.ConnectionError, requests.Timeout) as e:
+            log(f"Connection error on attempt {attempt + 1}: {e}", flush=True)
         except Exception as e:
-            print(Fore.RED + Style.BRIGHT + f"Failed Get Token. Error: {e}", flush=True)
+            log(f"Failed Get Token. Error: {e}", flush=True)
             try:
                 error_data = res.json()
                 if "invalid" in error_data.get("error_code", "").lower():
-                    print(Fore.RED + Style.BRIGHT + "Failed Get Token. Invalid init data", flush=True)
+                    log("Failed Get Token. Invalid init data", flush=True)
                 else:
-                    print(Fore.RED + Style.BRIGHT + f"Failed Get Token. {error_data}", flush=True)
+                    log(f"Failed Get Token. {error_data}", flush=True)
             except Exception as json_error:
-                print(Fore.RED + Style.BRIGHT + f"Failed Get Token and unable to parse error response: {json_error}", flush=True)
+                log(f"Failed Get Token and unable to parse error response: {json_error}", flush=True)
             return None
         time.sleep(backoff_factor * (2 ** attempt))
-    print(Fore.RED + Style.BRIGHT + "Failed to get token after multiple attempts.", flush=True)
+    log("Failed to get token after multiple attempts.", flush=True)
     return None
 
-def authenticate(token):
+def authenticate(token, account):
     url = 'https://api.hamsterkombatgame.io/auth/me-telegram'
     headers = get_headers(token)
+    headers['User-Agent'] = get_user_agent(account)
     
     try:
         res = requests.post(url, headers=headers)
         res.raise_for_status()
     except Exception as e:
-        print(Fore.RED + Style.BRIGHT + f"Token Failed : {token[:4]}********* | Status : {res.status_code} | Error: {e}", flush=True)
+        log(f"Token Failed : {token[:4]}********* | Status : {res.status_code} | Error: {e}", flush=True)
         return None
 
     return res
 
+def save_user_agents_at_exit():
+    save_user_agents()
+
+atexit.register(save_user_agents_at_exit)

@@ -11,6 +11,7 @@ from src.exceptions import upgrade_passive, claim_daily, execute, boost, clicker
 from src.exceptions import _sync, exhausted, execute_combo, claim_cipher, claim_key
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
+from src.promo import redeem_promo
 
 def read_json(file_path):
     with open(file_path, 'r') as f:
@@ -35,14 +36,16 @@ def read_hamster_config():
 
 def main():
     auto_upgrade = False
+    taps_on = False
     combo_upgrade = False
     daily_cipher_on = False
     claim_key_on = False
     tasks_on = False
+    promo_on = False
 
     cek_task_dict = {}
-    countPerAccount = config.get('DelayPerAccount', 3)
-    loop = config.get('loop', 3600)
+    countPerAccount = config.get('DELAY_EACH_ACCOUNT', 3)
+    loop = config.get('LOOP_COUNTDOWN', 3600)
 
     update_status(status="starting")
     while True:
@@ -50,6 +53,8 @@ def main():
             hamster_config = read_hamster_config()
             if hamster_config["Auto_Buy_Upgrade"] == "ON":
                 auto_upgrade = True
+            if hamster_config["Auto_Taps_Taps"] == "ON":
+                taps_on = True
             if hamster_config["Auto_Complete_Combo"] == "ON":
                 combo_upgrade = True
             if hamster_config["Auto_Complete_Cipher"] == "ON":
@@ -58,15 +63,18 @@ def main():
                 claim_key_on = True
             if hamster_config["Auto_Complete_Tasks"] == "ON":
                 tasks_on = True
+            if hamster_config["Auto_Redeem_Promo"] == "ON":
+                promo_on = True
             
             init_data_list = load_tokens('tokens.txt')
             user_info_dict = {}
-            for init_data in init_data_list:
-                token = get_token(init_data)
+            for idx, init_data in enumerate(init_data_list):
+                account = f"account_{idx + 1}"
+                token = get_token(init_data, account)
                 if token:
                     try:
                         update_status(status="login")
-                        res = authenticate(token)
+                        res = authenticate(token, account)
                         if res.status_code == 200:
                             user_data = res.json()
                             username = user_data.get('telegramUser', {}).get('username', 'Please set username first')
@@ -84,10 +92,13 @@ def main():
                                 log(f"CEO of {exchange_name} exchange")
                             update_status(status="working")
                             claim_daily(token)
-                            while True:
-                                exhausted(token)
-                                if not boost(token):
-                                    break
+                            if taps_on:
+                                while True:
+                                    exhausted(token)
+                                    if not boost(token):
+                                        break
+                            if promo_on:
+                                redeem_promo(token)
                             if tasks_on:
                                 execute(token, cek_task_dict)
                             if daily_cipher_on:

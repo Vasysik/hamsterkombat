@@ -4,16 +4,28 @@ This is a bot that can help you to run hamsterkombat telegram bot which has quit
 # Config
   ```bash
 {
-    "min_tap": 1038,
-    "max_tap": 1800,
-    "DelayPerAccount": 5,
-    "tapDelay": true,
-    "ClaimKeysDelay": true,
-    "delayUpgrade": false,
-    "max_price": 5000000,
-    "loop": 3800,
+    "MINIMUM_TAP": 438,
+    "MAXIMUM_TAP": 1200,
+
+    "TAP_DELAY": true,
+    "MIN_TAP_DELAY": 5,
+    "MAX_TAP_DELAY": 7,
+
+    "CLAIM_KEY_DELAY": true,
+    "MIN_CLAIM_KEY_DELAY": 7,
+    "MAX_CLAIM_KEY_DELAY": 11,
+
+    "DELAY_UPGRADE": true,
+    "MIN_DELAY_UPGRADE": 3,
+    "MAX_DELAY_UPGRADE": 5,
+
+    "DELAY_EACH_ACCOUNT": 5,
+    "MAXIMUM_PRICE": 5000000,
+    "LOOP_COUNTDOWN": 3800,
+
     "use_current": true,
     "use_influx": true,
+    
     "influxdb_config_path": "influxdb_config.json",
     "influxdb_org": "",
     "influxdb_bucket": ""
@@ -24,10 +36,13 @@ This is a bot that can help you to run hamsterkombat telegram bot which has quit
   ```bash
 {
     "Auto_Buy_Upgrade": "ON",
+    "Auto_Buy_Upgrade_Mode": "1",
+    "Auto_Taps_Taps": "ON",
     "Auto_Complete_Combo": "ON",
     "Auto_Complete_Cipher": "ON",
     "Auto_Complete_Mini_Game": "ON",
-    "Auto_Complete_Tasks": "ON"
+    "Auto_Complete_Tasks": "ON",
+    "Auto_Redeem_Promo": "ON"
 }
   ```
 
