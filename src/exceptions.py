@@ -102,11 +102,11 @@ def claim_daily(token):
     data = res.json()
     if res.status_code == 200:
         if data['task']['completedAt']:
-            log(f"Daily streaks already claimed\r" + Style.RESET_ALL)
+            log(f"Daily streaks already claimed\r")
         else:
-            log(f"Daily streaks claimed successfully\r" + Style.RESET_ALL)
+            log(f"Daily streaks claimed successfully\r")
     else:
-        log(f"Daily streaks", data.get('error', 'Unknown error') + Style.RESET_ALL)
+        log(f"Daily streaks, {data.get('error', 'Unknown error')}")
     return res
 
 def execute(token, cek_task_dict):
