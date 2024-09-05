@@ -68,20 +68,20 @@ def get_token(init_data_raw, account, retries=5, backoff_factor=0.5, timeout=tim
             res.raise_for_status()
             return res.json()['authToken']
         except (requests.ConnectionError, requests.Timeout) as e:
-            log(f"Connection error on attempt {attempt + 1}: {e}", flush=True)
+            log(f"Connection error on attempt {attempt + 1}: {e}")
         except Exception as e:
-            log(f"Failed Get Token. Error: {e}", flush=True)
+            log(f"Failed Get Token. Error: {e}")
             try:
                 error_data = res.json()
                 if "invalid" in error_data.get("error_code", "").lower():
-                    log("Failed Get Token. Invalid init data", flush=True)
+                    log("Failed Get Token. Invalid init data")
                 else:
-                    log(f"Failed Get Token. {error_data}", flush=True)
+                    log(f"Failed Get Token. {error_data}")
             except Exception as json_error:
-                log(f"Failed Get Token and unable to parse error response: {json_error}", flush=True)
+                log(f"Failed Get Token and unable to parse error response: {json_error}")
             return None
         time.sleep(backoff_factor * (2 ** attempt))
-    log("Failed to get token after multiple attempts.", flush=True)
+    log("Failed to get token after multiple attempts.")
     return None
 
 def authenticate(token, account):
@@ -93,7 +93,7 @@ def authenticate(token, account):
         res = requests.post(url, headers=headers)
         res.raise_for_status()
     except Exception as e:
-        log(f"Token Failed : {token[:4]}********* | Status : {res.status_code} | Error: {e}", flush=True)
+        log(f"Token Failed : {token[:4]}********* | Status : {res.status_code} | Error: {e}")
         return None
 
     return res

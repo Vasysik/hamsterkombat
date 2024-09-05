@@ -78,7 +78,7 @@ def exhausted(token):
 
                 if res.status_code == 200:
                     available_taps -= tap_count
-                    log(f"Tapping {tap_count:>4,}, remaining {available_taps:<4,}", flush=True)
+                    log(f"Tapping {tap_count:>4,}, remaining {available_taps:<4,}")
 
                     if TAP_DELAY:
                         countdown_timer(randint(MIN_TAP_DELAY, MAX_TAP_DELAY))
@@ -119,18 +119,18 @@ def execute(token, cek_task_dict):
             tasks = res.json()['tasks']
             all_completed = all(task['isCompleted'] or task['id'] == 'invite_friends' for task in tasks)
             if all_completed:
-                log(f"All task has been claimed successfully\r", flush=True)
+                log(f"All task has been claimed successfully\r")
             else:
                 for task in tasks:
                     if not task['isCompleted']:
                         res = _check(token, task['id'])
                         if res.status_code == 200 and res.json()['task']['isCompleted']:
-                            log(f"Tasks {task['id']}\r", flush=True)
-                            log(f"Claim success get +{task['rewardCoins']} coin\r", flush=True)
+                            log(f"Tasks {task['id']}\r")
+                            log(f"Claim success get +{task['rewardCoins']} coin\r")
                         else:
-                            log(f"Tasks failed {task['id']}\r", flush=True)
+                            log(f"Tasks failed {task['id']}\r")
         else:
-            log(f"Tasks failed to get list {res.status_code}\r", flush=True)
+            log(f"Tasks failed to get list {res.status_code}\r")
 
 def apply_boost(token, boost_type):
     url = 'https://api.hamsterkombatgame.io/clicker/buy-boost'
@@ -165,15 +165,15 @@ def upgrade_passive(token, _method):
         user_info = clicker_data['clickerUser']
         balance_coins = user_info['balanceCoins']
     else:
-        log(f"Failed to get user data\r", flush=True)
+        log(f"Failed to get user data\r")
         return
 
     upgrades = available_upgrades(token)
     if not upgrades:
-        log(f"\rFailed to get data or no upgrades available\r", flush=True)
+        log(f"\rFailed to get data or no upgrades available\r")
         return
 
-    log(f"Total card available: {len(upgrades)}", flush=True)
+    log(f"Total card available: {len(upgrades)}")
 
     if _method == '1':
         upg_sort = sorted(
@@ -196,14 +196,14 @@ def upgrade_passive(token, _method):
     elif _method == '3':
         upg_sort = [u for u in upgrades if u['price'] <= balance_coins and u['price'] <= MAXIMUM_PRICE]
         if not upg_sort:
-            log(f"No upgrade available less than balance\r", flush=True)
+            log(f"No upgrade available less than balance\r")
             return
     else:
-        log("Invalid option, please try again", flush=True)
+        log("Invalid option, please try again")
         return
 
     if not upg_sort:
-        log(f"No item available under {_number(MAXIMUM_PRICE)}\r", flush=True)
+        log(f"No item available under {_number(MAXIMUM_PRICE)}\r")
         return
 
     any_upgrade_attempted = False
@@ -234,7 +234,7 @@ def upgrade_passive(token, _method):
                     continue
         
         if not any_upgrade_attempted:
-            log(f"No item available under {_number(MAXIMUM_PRICE)}\r", flush=True)
+            log(f"No item available under {_number(MAXIMUM_PRICE)}\r")
             break
         elif not upgrades_purchased:
             any_upgrade_attempted = True
@@ -278,7 +278,7 @@ def available_upgrades(token):
     if res.status_code == 200:
         return res.json()['upgradesForBuy']
     else:
-        log(f"Failed to get upgrade list: {res.json()}\r", flush=True)
+        log(f"Failed to get upgrade list: {res.json()}\r")
         return []
 
 def buy_upgrade(token: str, upgrade_id: str, upgrade_name: str, level: int, profitPerHour: float, price: float) -> str:
@@ -289,10 +289,10 @@ def buy_upgrade(token: str, upgrade_id: str, upgrade_name: str, level: int, prof
     DELAY_UPGRADE = config.get('DELAY_UPGRADE', False)
     MIN_DELAY_UPGRADE = config.get('MIN_DELAY_UPGRADE',0)
     MAX_DELAY_UPGRADE = config.get('MAX_DELAY_UPGRADE',1)
-    log(f"Card name {upgrade_name}    \r", flush=True)
-    log(f"Card price {_number(price)}       \r", flush=True)
+    log(f"Card name {upgrade_name}    \r")
+    log(f"Card price {_number(price)}       \r")
     if res.status_code == 200:
-        log(f"Success | Level +{level} | +{_number(profitPerHour)}/h         \r", flush=True)
+        log(f"Success | Level +{level} | +{_number(profitPerHour)}/h         \r")
         if DELAY_UPGRADE:
             countdown_timer(randint(MIN_DELAY_UPGRADE, MAX_DELAY_UPGRADE))
         else:
@@ -301,23 +301,23 @@ def buy_upgrade(token: str, upgrade_id: str, upgrade_name: str, level: int, prof
     else:
         error_res = res.json()
         if error_res.get('error_code') == 'INSUFFICIENT_FUNDS':
-            log(f"Insufficient funds for this card       ", flush=True)
+            log(f"Insufficient funds for this card       ")
             return 'insufficient_funds'
         elif error_res.get('error_code') == 'UPGRADE_COOLDOWN':
             cooldown_time = error_res.get('cooldownSeconds')
-            log(f"Card cooldown for {cooldown_time} seconds.       ", flush=True)
+            log(f"Card cooldown for {cooldown_time} seconds.       ")
             return 'cooldown'
         elif error_res.get('error_code') == 'UPGRADE_MAX_LEVEL':
-            log(f"Card is already on max level  ", flush=True)
+            log(f"Card is already on max level  ")
             return 'max_level'
         elif error_res.get('error_code') == 'UPGRADE_NOT_AVAILABLE':
-            log(f"Not Meet requirements to buy card", flush=True)
+            log(f"Not Meet requirements to buy card")
             return 'not_available'
         elif error_res.get('error_code') == 'UPGRADE_HAS_EXPIRED':
-            log(f"Card has expired you'are late      ", flush=True)
+            log(f"Card has expired you'are late      ")
             return 'expired'
         else:
-            log(f"{res.json()}       ", flush=True)
+            log(f"{res.json()}       ")
             return 'error'
 
 def execute_combo(token: str):
@@ -344,7 +344,7 @@ def execute_combo(token: str):
     upgrades = available_upgrades(token)
     for combo_item in combo:
         if combo_item in not_ready_combo:
-            log(f"Already executed {combo_item}", flush=True)
+            log(f"Already executed {combo_item}")
             continue
 
         upgrade_details = next((u for u in upgrades if u['id'] == combo_item), None)
@@ -355,7 +355,7 @@ def execute_combo(token: str):
                 log(f"Price combo is over max price")
                 return
         if upgrade_details is None:
-            log(f"Failed to find details {combo_item}", flush=True)
+            log(f"Failed to find details {combo_item}")
             continue
 
         status = buy_upgrade(
@@ -375,7 +375,7 @@ def execute_combo(token: str):
     if combo_purchased:
         claim_daily_combo(token)
     else:
-        log(f"Combo not fully purchased ", flush=True)
+        log(f"Combo not fully purchased ")
 
 def decode_cipher(cipher: str):
     encoded = cipher[:3] + cipher[4:]
@@ -388,7 +388,7 @@ def claim_cipher(token):
     daily_cipher = game_config.get('dailyCipher')
     
     if not daily_cipher or daily_cipher.get('isClaimed', True) or not daily_cipher.get('cipher'):
-        log(f"No valid cipher or already claimed.", flush=True)
+        log(f"No valid cipher or already claimed.")
         return False
 
     decoded_cipher = decode_cipher(cipher=daily_cipher['cipher'])
@@ -397,12 +397,12 @@ def claim_cipher(token):
     
     if res_claim.status_code == 200:
         if res_claim.json().get('dailyCipher', {}).get('isClaimed', True):
-            log(f"Successfully claim morse '{decoded_cipher}'", flush=True)
+            log(f"Successfully claim morse '{decoded_cipher}'")
             return True
         else:
-            log(f"Failed to claim morse.", flush=True)
+            log(f"Failed to claim morse.")
     else:
-        log(f"Failed to claim daily morse. Status code: {res_claim.status_code}", flush=True)
+        log(f"Failed to claim daily morse. Status code: {res_claim.status_code}")
     
     return False
 
