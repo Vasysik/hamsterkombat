@@ -97,7 +97,7 @@ def claim_daily(token):
     headers = get_headers(token)
     headers['accept'] = 'application/json'
     headers['content-type'] = 'application/json'
-    data = json.dumps({"taskId": "streak_days"})
+    data = json.dumps({"taskId": "streak_days_special"})
     res = requests.post(url, headers=headers, data=data)
     data = res.json()
     if res.status_code == 200:
@@ -106,7 +106,8 @@ def claim_daily(token):
         else:
             log(f"Daily streaks claimed successfully\r")
     else:
-        log(f"Daily streaks, {data.get('error', 'Unknown error')}")
+        error_message = data.get('error', 'Unknown error')
+        log(f"Daily streaks: {error_message}")
     return res
 
 def execute(token, cek_task_dict):
@@ -126,7 +127,7 @@ def execute(token, cek_task_dict):
                         res = _check(token, task['id'])
                         if res.status_code == 200 and res.json()['task']['isCompleted']:
                             log(f"Tasks {task['id']}\r")
-                            log(f"Claim success get +{task['rewardCoins']} coin\r")
+                            log(f"Succesfully Claimed this Taks Rewards\r")
                         else:
                             log(f"Tasks failed {task['id']}\r")
         else:

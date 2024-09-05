@@ -1,0 +1,10 @@
+services:
+  hamster:
+    build: .
+    volumes:
+      - ./config.json:/app/config.json
+      - ./hamster_config.json:/app/hamster_config.json
+      - ./influxdb_config.json:/app/influxdb_config.json
+      - ./status.json:/app/status.json
+      - ./current.json:/app/current.json
+    restart: unless-stopped
