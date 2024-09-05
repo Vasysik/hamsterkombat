@@ -50,14 +50,12 @@ def update_status(status=read_status()['status'], end_string=read_status()['endS
     with open('status.json', 'w') as f:
         json.dump({"status": status, "endString": end_string}, f)
 
-def log(message, **kwargs):
+def log(message):
     global last_log_message
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    flush = kwargs.pop('flush', False)
-    end = kwargs.pop('end', '\n')
     if message != last_log_message:
         update_status(end_string=message)
-        print(f"{htm}[{current_time}] {message}", flush=flush, end=end)
+        print(f"{htm}[{current_time}] {message}")
         last_log_message = message
 
 def log_line():

@@ -129,7 +129,7 @@ def main():
                         log(f"Request exception for token {token[:4]}****: {str(e)}")
                 else:
                     update_status(status="error")
-                    log(f"Failed to login token {token[:4]}*********\n", flush=True)
+                    log(f"Failed to login token {token[:4]}*********\n")
             if config['use_current']: 
                 with open('current.json', 'w') as f:
                     json.dump(user_info_dict, f)

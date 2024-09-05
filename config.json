@@ -21,7 +21,7 @@
     "use_current": true,
     "use_influx": true,
     
-    "influxdb_config_path": "influxdb_config.json",
-    "influxdb_org": "",
-    "influxdb_bucket": ""
+    "influxdb_config_path": "/opt/RPiM/influxdb_config.json",
+    "influxdb_org": "tubik-corp",
+    "influxdb_bucket": "hamster"
 }
